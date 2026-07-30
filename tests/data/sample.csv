@@ -1,0 +1,11 @@
+id,name,age,city,salary
+1,Alice,34,New York,55000
+2,Bob,29,Boston,62000
+3,Charlie,45,Chicago,58000
+4, Dave ,31,chicago,60000
+5,Eve,,Boston,59000
+6,Frank,38,,61000
+7,Grace,52,New York,650000
+8,Heidi,27,Chicago,57000
+9,Ivan,41,Boston,63000
+2,Bob,29,Boston,62000

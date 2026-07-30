@@ -1,0 +1,31 @@
+source:
+  type: file
+  path: examples/sample_data.csv
+
+cleaning:
+  dedupe: true
+  missing_value_strategy: median
+  missing_value_overrides:
+    city: mode
+  string_normalize: true
+  outlier_strategy: iqr_cap
+
+validation:
+  - type: not_null
+    column: name
+  - type: not_null
+    column: age
+    params:
+      max_null_rate: 0.2
+  - type: unique
+    column: id
+  - type: range
+    column: salary
+    params:
+      min: 0
+      max: 200000
+
+report:
+  output_dir: examples/output
+  formats: [html]
+  title: "Sample Data Science Report"

@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dstoolkit"
+version = "0.1.0"
+description = "A single tool for the data science workflow: collect, clean, validate, and report."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas>=2.0",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    "typer>=0.12",
+    "jinja2>=3.1",
+    "matplotlib>=3.8",
+    "openpyxl>=3.1",
+    "pyarrow>=14.0",
+    "sqlalchemy>=2.0",
+    "requests>=2.31",
+    "beautifulsoup4>=4.12",
+    "lxml>=5.0",
+    "xhtml2pdf>=0.2.15",
+    "streamlit>=1.35",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[project.scripts]
+dstk = "dstoolkit.cli.main:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
