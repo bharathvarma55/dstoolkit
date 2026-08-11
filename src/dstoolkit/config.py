@@ -40,11 +40,13 @@ class SourceConfig(BaseModel):
     table_index: int = 0
 
     @model_validator(mode="after")
-    def _check_required_fields(self) -> "SourceConfig":
+    def _check_required_fields(self) -> SourceConfig:
         if self.type == "file" and not self.path:
             raise ValueError("source.path is required when source.type is 'file'")
         if self.type == "db" and not (self.connection_string and self.query):
-            raise ValueError("source.connection_string and source.query are required when source.type is 'db'")
+            raise ValueError(
+                "source.connection_string and source.query are required when source.type is 'db'"
+            )
         if self.type in ("api", "web") and not self.url:
             raise ValueError(f"source.url is required when source.type is '{self.type}'")
         return self
@@ -63,8 +65,11 @@ class CleaningConfig(BaseModel):
     outlier_columns: list[str] | None = None
 
     @model_validator(mode="after")
-    def _check_constant_value_set(self) -> "CleaningConfig":
-        uses_constant = self.missing_value_strategy == "constant" or "constant" in self.missing_value_overrides.values()
+    def _check_constant_value_set(self) -> CleaningConfig:
+        uses_constant = (
+            self.missing_value_strategy == "constant"
+            or "constant" in self.missing_value_overrides.values()
+        )
         if uses_constant and self.missing_value_constant is None:
             raise ValueError(
                 "cleaning.missing_value_constant must be set when using the 'constant' fill strategy"
@@ -93,7 +98,7 @@ class PipelineConfig(BaseModel):
     report: ReportConfig = Field(default_factory=ReportConfig)
 
     @classmethod
-    def from_yaml(cls, path: str | Path) -> "PipelineConfig":
-        with open(path, "r", encoding="utf-8") as f:
+    def from_yaml(cls, path: str | Path) -> PipelineConfig:
+        with open(path, encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
         return cls.model_validate(data)

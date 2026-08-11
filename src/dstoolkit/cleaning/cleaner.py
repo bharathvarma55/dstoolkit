@@ -55,7 +55,9 @@ def _coerce_dtypes(df: pd.DataFrame, log: CleaningLog) -> pd.DataFrame:
     return df
 
 
-def _fill_column(df: pd.DataFrame, col: str, strategy: str, config: CleaningConfig, log: CleaningLog) -> pd.DataFrame:
+def _fill_column(
+    df: pd.DataFrame, col: str, strategy: str, config: CleaningConfig, log: CleaningLog
+) -> pd.DataFrame:
     n_missing = df[col].isna().sum()
     if n_missing == 0:
         return df

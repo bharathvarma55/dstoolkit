@@ -3,7 +3,8 @@ inspects the DataFrame and returns an `Issue` if the rule failed, or `None` if i
 from __future__ import annotations
 
 import re
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import pandas as pd
 
@@ -61,7 +62,10 @@ def _check_range(df: pd.DataFrame, column: str, params: dict[str, Any]) -> Issue
         return Issue("range", column, f"Column '{column}' not found")
     series = df[column]
     if not pd.api.types.is_numeric_dtype(series):
-        return Issue("range", column, f"Cannot apply a range rule to non-numeric column '{column}' (dtype {series.dtype})")
+        return Issue(
+            "range", column,
+            f"Cannot apply a range rule to non-numeric column '{column}' (dtype {series.dtype})",
+        )
     min_v, max_v = params.get("min"), params.get("max")
     mask = pd.Series(False, index=series.index)
     if min_v is not None:

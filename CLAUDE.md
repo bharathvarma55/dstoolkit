@@ -21,6 +21,11 @@ Run a single test:
 pytest tests/test_cleaner.py::test_dedupe_and_missing -q
 ```
 
+Lint (ruff, config in `pyproject.toml`'s `[tool.ruff]`):
+```bash
+ruff check .
+```
+
 Run the CLI (full pipeline or step-by-step):
 ```bash
 dstk run examples/pipeline.yaml
@@ -36,7 +41,9 @@ streamlit run src/dstoolkit/webapp/app.py
 ```
 (a saved launch config for this is at `.claude/launch.json`)
 
-No linter or formatter is configured in this repo yet — don't assume `ruff`/`black`/`flake8` exist.
+`ruff` is the only linter configured (no `black`/`flake8`). `B008` is intentionally disabled — see
+the comment in `pyproject.toml`; it's a false positive against Typer's required
+`typer.Argument()`/`typer.Option()` default-value pattern.
 
 ## Architecture
 

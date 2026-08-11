@@ -5,13 +5,12 @@ from __future__ import annotations
 import functools
 import json
 from pathlib import Path
-from typing import Optional
 
 import typer
 
 from ..cleaning.rules import CleaningLog
 from ..config import PipelineConfig
-from ..pipeline import clean_stage, collect_stage, report_stage, run_pipeline, validate_stage
+from ..pipeline import clean_stage, collect_stage, run_pipeline, validate_stage
 from ..reporting import html_report, pdf_report
 from ..utils import io as io_utils
 from ..validation.rules import Issue, ValidationResult
@@ -71,7 +70,7 @@ def clean(
 def validate(
     input: Path = typer.Argument(..., help="Path to the cleaned data (parquet/csv)."),
     config: Path = typer.Argument(..., help="Path to the pipeline YAML config."),
-    output: Optional[Path] = typer.Option(None, "-o", "--output", help="Optional path to write results as JSON."),
+    output: Path | None = typer.Option(None, "-o", "--output", help="Optional path to write results as JSON"),
 ) -> None:
     """Validate INPUT against the rules in CONFIG."""
     cfg = PipelineConfig.from_yaml(config)
@@ -95,7 +94,7 @@ def validate(
 def report(
     input: Path = typer.Argument(..., help="Path to the cleaned data (parquet/csv)."),
     config: Path = typer.Argument(..., help="Path to the pipeline YAML config."),
-    validation: Optional[Path] = typer.Option(None, "--validation", help="Optional prior `validate -o` JSON output."),
+    validation: Path | None = typer.Option(None, "--validation", help="Prior `validate -o` JSON output"),
     output: Path = typer.Option(..., "-o", "--output", help="Where to write the report (.html or .pdf)."),
 ) -> None:
     """Render a report for INPUT, reusing a prior VALIDATION result if given."""
@@ -128,7 +127,8 @@ def run(config: Path = typer.Argument(..., help="Path to the pipeline YAML confi
     result = run_pipeline(cfg)
     for action in result.cleaning_log.as_text():
         typer.echo(f"  - {action}")
-    status = "PASSED" if result.validation_result.passed else f"{len(result.validation_result.issues)} ISSUE(S)"
+    n_issues = len(result.validation_result.issues)
+    status = "PASSED" if result.validation_result.passed else f"{n_issues} ISSUE(S)"
     typer.echo(f"Validation: {status}")
     for fmt, path in result.report_paths.items():
         typer.echo(f"Report ({fmt}): {path}")
