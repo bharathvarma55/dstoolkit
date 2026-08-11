@@ -17,5 +17,12 @@ examples/output/
 examples/output_db/
 examples/sample.db
 
+# Generated CLI step-by-step output at the repo root (README/CLAUDE.md walkthrough commands)
+/raw.parquet
+/clean.parquet
+/validation.json
+/report.html
+/report.pdf
+
 # Claude Code runtime state (not project config)
 .claude/scheduled_tasks.lock

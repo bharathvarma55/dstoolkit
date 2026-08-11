@@ -35,11 +35,16 @@ dstk validate clean.parquet examples/pipeline.yaml -o validation.json
 dstk report clean.parquet examples/pipeline.yaml --validation validation.json -o report.html   # or .pdf
 ```
 
-Run the web UI:
+Run the (primary) web app — custom FastAPI + HTML/CSS/JS frontend:
+```bash
+dstk serve
+```
+
+Run the Streamlit dashboard (lightweight alternative):
 ```bash
 streamlit run src/dstoolkit/webapp/app.py
 ```
-(a saved launch config for this is at `.claude/launch.json`)
+(saved launch configs for both are at `.claude/launch.json`)
 
 `ruff` is the only linter configured (no `black`/`flake8`). `B008` is intentionally disabled — see
 the comment in `pyproject.toml`; it's a false positive against Typer's required
@@ -84,13 +89,28 @@ matplotlib charts as base64-embedded PNGs (no external assets, so the HTML is se
 no system-level dependencies — it installs identically via pip on Windows/Mac/Linux — at the cost
 of weaker CSS support (no flexbox), so the PDF layout is simpler than the HTML one.
 
-**Two interfaces, one pipeline**: `cli/main.py` (Typer) wraps the stage functions for
+**Three interfaces, one pipeline**: `cli/main.py` (Typer) wraps the stage functions for
 step-by-step use (`dstk collect/clean/validate/report`, chaining Parquet/CSV intermediates via
 `utils/io.py`) or full automation (`dstk run`). All commands are wrapped with a
 `_friendly_errors` decorator that turns exceptions into a one-line `Error: ...` message + exit
 code 1 instead of a raw traceback. `webapp/app.py` (Streamlit) wraps the exact same stage
 functions in a 4-tab dashboard, using `st.session_state` to carry the in-progress DataFrame and
 logs between tabs.
+
+**`webapi/`** (FastAPI + hand-built HTML/CSS/JS, `dstk serve`) is the primary, polished web UI.
+`state.py` holds an **in-memory** `SessionStore` (`dict[str, SessionState]`, `uuid4` keys) —
+there's no persistence or expiry, and it only works with a single uvicorn worker, since state
+lives in one process's memory. `routes.py` has one endpoint per stage
+(`/api/sessions/upload`, `.../clean`, `.../validate`, `.../report`), each calling the *same*
+`cleaning.cleaner.clean` / `validation.validator.validate` / `reporting.html_report.render` /
+`reporting.pdf_report.render_bytes` functions the CLI uses — `CleaningConfig` and
+`ValidationRuleConfig` (`config.py`) are used directly as FastAPI request bodies, so there's no
+separate API schema to keep in sync. `static/` is a single-page app with no build step (vanilla
+JS, no framework, no npm) — `app.js` drives a 4-step wizard against the `/api/*` endpoints;
+`index.html`/`styles.css` implement a dark, GitHub/Vercel-inspired theme via CSS custom
+properties in `styles.css`'s `:root`. Static assets must be listed in
+`[tool.setuptools.package-data]` in `pyproject.toml` (same as the Jinja2 template) or they're
+silently dropped from the built wheel — see the packaging-fix commit for how that bug surfaced.
 
 ## Testing conventions
 

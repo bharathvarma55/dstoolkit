@@ -134,5 +134,18 @@ def run(config: Path = typer.Argument(..., help="Path to the pipeline YAML confi
         typer.echo(f"Report ({fmt}): {path}")
 
 
+@app.command()
+@_friendly_errors
+def serve(
+    host: str = typer.Option("127.0.0.1", help="Host to bind to."),
+    port: int = typer.Option(8000, help="Port to bind to."),
+) -> None:
+    """Launch the web app (upload/clean/validate/report through the browser)."""
+    import uvicorn
+
+    typer.echo(f"Serving dstoolkit at http://{host}:{port}")
+    uvicorn.run("dstoolkit.webapi.app:app", host=host, port=port)
+
+
 if __name__ == "__main__":
     app()

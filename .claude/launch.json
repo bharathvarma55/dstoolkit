@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "dstoolkit-web",
+      "runtimeExecutable": ".venv/Scripts/python.exe",
+      "runtimeArgs": ["-m", "uvicorn", "dstoolkit.webapi.app:app", "--port", "8000"],
+      "port": 8000
+    },
+    {
       "name": "dstoolkit-webapp",
       "runtimeExecutable": ".venv/Scripts/streamlit.exe",
       "runtimeArgs": ["run", "src/dstoolkit/webapp/app.py", "--server.headless=true"],
