@@ -8,9 +8,27 @@ import pandas as pd
 
 from .base import CollectionResult
 
+# Tried in order until one decodes cleanly. utf-8-sig strips a BOM if present; cp1252 covers
+# most files exported from Excel on Windows; latin-1 maps every byte to a codepoint so it never
+# raises, guaranteeing this loop always terminates.
+_CSV_ENCODING_FALLBACKS = ("utf-8", "utf-8-sig", "cp1252", "latin-1")
+
+
+def _read_csv_robust(path: Path, **options: Any) -> pd.DataFrame:
+    if "encoding" in options:
+        return pd.read_csv(path, **options)
+    last_error: UnicodeDecodeError | None = None
+    for encoding in _CSV_ENCODING_FALLBACKS:
+        try:
+            return pd.read_csv(path, encoding=encoding, **options)
+        except UnicodeDecodeError as exc:
+            last_error = exc
+    raise last_error  # pragma: no cover - latin-1 above never raises
+
+
 _READERS = {
-    ".csv": pd.read_csv,
-    ".tsv": lambda p, **kw: pd.read_csv(p, sep="\t", **kw),
+    ".csv": _read_csv_robust,
+    ".tsv": lambda p, **kw: _read_csv_robust(p, sep="\t", **kw),
     ".xlsx": pd.read_excel,
     ".xls": pd.read_excel,
     ".json": pd.read_json,

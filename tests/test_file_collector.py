@@ -33,3 +33,20 @@ def test_collect_messy_sample():
     assert result.row_count == 10
     assert result.col_count == 5
     assert result.df.duplicated().sum() == 1
+
+
+def test_collect_csv_falls_back_from_utf8_on_non_utf8_bytes(tmp_path):
+    csv_path = tmp_path / "windows1252.csv"
+    # cp1252-only bytes (e.g. the '£' pound sign) are not valid UTF-8 and would raise
+    # UnicodeDecodeError under plain pd.read_csv(path).
+    csv_path.write_bytes("name,price\nWidget,£9.99\n".encode("cp1252"))
+    result = file_collector.collect(csv_path)
+    assert result.row_count == 1
+    assert result.df["price"].iloc[0] == "£9.99"
+
+
+def test_collect_csv_respects_explicit_encoding(tmp_path):
+    csv_path = tmp_path / "explicit.csv"
+    csv_path.write_bytes("name,price\nWidget,£9.99\n".encode("cp1252"))
+    result = file_collector.collect(csv_path, encoding="cp1252")
+    assert result.df["price"].iloc[0] == "£9.99"
