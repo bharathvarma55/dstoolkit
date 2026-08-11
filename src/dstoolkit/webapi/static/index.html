@@ -120,7 +120,15 @@
         <span>Title</span>
         <input type="text" id="report-title" value="Data Science Report">
       </label>
-      <button class="btn primary" id="generate-report-btn">Generate Report</button>
+
+      <h3 style="margin-top:24px;">Charts</h3>
+      <p class="muted">Choose which visualizations to include.</p>
+      <div id="charts-list"></div>
+      <button class="btn ghost" id="add-chart-btn" type="button">+ Add Chart</button>
+
+      <div style="margin-top:20px;">
+        <button class="btn primary" id="generate-report-btn">Generate Report</button>
+      </div>
       <div class="error" id="report-error"></div>
     </div>
     <div class="card" id="report-preview-card" hidden>

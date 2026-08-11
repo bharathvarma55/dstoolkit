@@ -65,7 +65,12 @@ def report_stage(
     validation_result: ValidationResult,
     config: PipelineConfig,
 ) -> dict[str, Path]:
-    html = html_report.render(df, cleaning_log, validation_result, title=config.report.title)
+    chart_specs = (
+        [c.model_dump() for c in config.report.charts] if config.report.charts is not None else None
+    )
+    html = html_report.render(
+        df, cleaning_log, validation_result, title=config.report.title, chart_specs=chart_specs
+    )
     output_dir = Path(config.report.output_dir)
     paths: dict[str, Path] = {}
     if "html" in config.report.formats:

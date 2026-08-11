@@ -4,6 +4,7 @@
   const state = {
     sessionId: null,
     columns: [],
+    columnInfo: [], // [{name, numeric}]
   };
 
   const $ = (id) => document.getElementById(id);
@@ -99,6 +100,11 @@
     renderBadges(badgesId, preview);
   }
 
+  async function refreshColumnInfo() {
+    const data = await api(`/api/sessions/${state.sessionId}/columns`);
+    state.columnInfo = data.columns;
+  }
+
   // ---------- step 1: upload ----------
 
   const dropzone = $("dropzone");
@@ -137,6 +143,7 @@
       const data = await api("/api/sessions/upload", { method: "POST", body: formData });
       state.sessionId = data.session_id;
       applyPreview(data.preview, { tableId: "upload-table", badgesId: "upload-badges" });
+      await refreshColumnInfo();
       $("upload-preview-card").hidden = false;
       unlockStep("clean");
     } catch (err) {
@@ -180,6 +187,7 @@
         : `<div class="line">No changes were needed.</div>`;
       $("clean-log-card").hidden = false;
       applyPreview(data.preview, { tableId: "clean-table", badgesId: "clean-badges" });
+      await refreshColumnInfo();
       $("clean-preview-card").hidden = false;
       unlockStep("validate");
     } catch (err) {
@@ -265,7 +273,7 @@
   $("add-rule-btn").addEventListener("click", addRuleRow);
 
   function collectRules() {
-    return Array.from(document.querySelectorAll(".rule-row")).map((row) => {
+    return Array.from(document.querySelectorAll("#rules-list .rule-row")).map((row) => {
       const type = row.querySelector('[data-role="type"]').value;
       const column = row.querySelector('[data-role="column"]').value;
       const params = {};
@@ -344,6 +352,72 @@
 
   // ---------- step 4: report ----------
 
+  const CHART_TYPES = {
+    histogram: { label: "Histogram", roles: ["column"], numericOnly: true },
+    bar: { label: "Bar chart", roles: ["column"], numericOnly: false },
+    box: { label: "Box plot", roles: ["column"], numericOnly: true },
+    scatter: { label: "Scatter plot", roles: ["x", "y"], numericOnly: true },
+    line: { label: "Line chart", roles: ["column"], numericOnly: true },
+    pie: { label: "Pie chart", roles: ["column"], numericOnly: false },
+    correlation: { label: "Correlation heatmap", roles: [], numericOnly: false },
+    missingness: { label: "Missing values", roles: [], numericOnly: false },
+  };
+
+  function columnOptionsHtml(numericOnly) {
+    const cols = numericOnly ? state.columnInfo.filter((c) => c.numeric) : state.columnInfo;
+    if (!cols.length) return `<option value="">(no eligible columns)</option>`;
+    return cols.map((c) => `<option value="${c.name}">${c.name}</option>`).join("");
+  }
+
+  function addChartRow(defaultType = "missingness") {
+    const row = document.createElement("div");
+    row.className = "rule-row";
+
+    const typeOptions = Object.entries(CHART_TYPES)
+      .map(
+        ([value, { label }]) =>
+          `<option value="${value}" ${value === defaultType ? "selected" : ""}>${label}</option>`
+      )
+      .join("");
+
+    row.innerHTML = `
+      <select data-role="type">${typeOptions}</select>
+      <span class="cols"></span>
+      <button type="button" class="remove-rule" title="Remove chart">&times;</button>
+    `;
+
+    const typeSelect = row.querySelector('[data-role="type"]');
+    const colsSpan = row.querySelector(".cols");
+
+    function renderCols() {
+      const spec = CHART_TYPES[typeSelect.value];
+      colsSpan.innerHTML = spec.roles
+        .map((role) => `<select data-role="${role}">${columnOptionsHtml(spec.numericOnly)}</select>`)
+        .join("");
+    }
+    typeSelect.addEventListener("change", renderCols);
+    renderCols();
+
+    row.querySelector(".remove-rule").addEventListener("click", () => row.remove());
+
+    $("charts-list").appendChild(row);
+  }
+
+  $("add-chart-btn").addEventListener("click", () => addChartRow("histogram"));
+
+  function collectCharts() {
+    return Array.from(document.querySelectorAll("#charts-list .rule-row")).map((row) => {
+      const type = row.querySelector('[data-role="type"]').value;
+      const spec = CHART_TYPES[type];
+      const params = {};
+      spec.roles.forEach((role) => {
+        const select = row.querySelector(`[data-role="${role}"]`);
+        if (select && select.value) params[role] = select.value;
+      });
+      return { type, params };
+    });
+  }
+
   $("generate-report-btn").addEventListener("click", async () => {
     showError("report-error", "");
     if (!state.sessionId) {
@@ -354,7 +428,10 @@
       await api(`/api/sessions/${state.sessionId}/report`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: $("report-title").value || "Data Science Report" }),
+        body: JSON.stringify({
+          title: $("report-title").value || "Data Science Report",
+          charts: collectCharts(),
+        }),
       });
       const base = `/api/sessions/${state.sessionId}/report`;
       $("report-frame").src = `${base}/html`;
@@ -366,6 +443,7 @@
     }
   });
 
-  // seed one empty rule row so the validate step isn't blank
+  // seed one empty row in each builder so the validate/report steps aren't blank
   addRuleRow();
+  addChartRow("missingness");
 })();

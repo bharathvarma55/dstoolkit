@@ -74,6 +74,53 @@ def test_full_flow_clean_validate_report():
     assert pdf_resp.content.startswith(b"%PDF")
 
 
+def test_columns_endpoint_reports_numeric_flag():
+    session_id = _upload_sample()["session_id"]
+    response = client.get(f"/api/sessions/{session_id}/columns")
+    assert response.status_code == 200
+    columns = {c["name"]: c["numeric"] for c in response.json()["columns"]}
+    assert columns["age"] is True
+    assert columns["city"] is False
+
+
+def test_report_with_selected_charts():
+    session_id = _upload_sample()["session_id"]
+    report_resp = client.post(
+        f"/api/sessions/{session_id}/report",
+        json={
+            "title": "Chart Test",
+            "charts": [
+                {"type": "histogram", "params": {"column": "age"}},
+                {"type": "bar", "params": {"column": "city"}},
+                {"type": "scatter", "params": {"x": "age", "y": "salary"}},
+                {"type": "correlation", "params": {}},
+                # deliberately asks for a chart that can't be rendered on this data —
+                # should degrade to an inline error in the report, not fail the request
+                {"type": "box", "params": {"column": "city"}},
+            ],
+        },
+    )
+    assert report_resp.status_code == 200
+
+    html_resp = client.get(f"/api/sessions/{session_id}/report/html")
+    assert html_resp.status_code == 200
+    assert "Histogram" in html_resp.text
+    assert "Bar chart" in html_resp.text
+    assert "Scatter" in html_resp.text
+    assert "Correlation heatmap" in html_resp.text
+    assert "chart-error" in html_resp.text  # the box plot on a non-numeric column
+
+
+def test_report_with_no_charts_selected():
+    session_id = _upload_sample()["session_id"]
+    report_resp = client.post(
+        f"/api/sessions/{session_id}/report", json={"title": "No Charts", "charts": []}
+    )
+    assert report_resp.status_code == 200
+    html_resp = client.get(f"/api/sessions/{session_id}/report/html")
+    assert "No charts to display" in html_resp.text
+
+
 def test_unknown_session_returns_404():
     response = client.get("/api/sessions/does-not-exist/preview")
     assert response.status_code == 404

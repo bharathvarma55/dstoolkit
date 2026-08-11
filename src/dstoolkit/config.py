@@ -85,10 +85,20 @@ class ValidationRuleConfig(BaseModel):
     params: dict[str, Any] = Field(default_factory=dict)
 
 
+class ChartConfig(BaseModel):
+    """A single chart to render into the report, dispatched by `type` in reporting/charts.py."""
+
+    type: Literal["histogram", "bar", "box", "scatter", "line", "pie", "correlation", "missingness"]
+    params: dict[str, Any] = Field(default_factory=dict)
+
+
 class ReportConfig(BaseModel):
     output_dir: str = "reports"
     formats: list[Literal["html", "pdf"]] = Field(default_factory=lambda: ["html"])
     title: str = "Data Science Report"
+    charts: list[ChartConfig] | None = None
+    """None (the default) picks a sensible automatic set — see charts.default_chart_specs.
+    An explicit [] means no charts at all."""
 
 
 class PipelineConfig(BaseModel):

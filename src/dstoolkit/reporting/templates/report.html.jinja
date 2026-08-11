@@ -21,7 +21,10 @@
   .badge-pass { background: #e6f4ea; color: #1e8e3e; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; }
   .badge-fail { background: #fce8e6; color: #c0392b; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; }
   .charts { display: flex; flex-wrap: wrap; gap: 16px; }
+  .charts figure { margin: 0; }
   .charts img { max-width: 100%; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff; }
+  .charts figcaption { margin-top: 6px; font-size: 0.85em; color: #666; text-align: center; }
+  .chart-error { border: 1px dashed #e0e0e0; border-radius: 8px; padding: 16px; color: #888; font-style: italic; font-size: 0.85em; max-width: 260px; }
   .empty { color: #888; font-style: italic; }
 </style>
 </head>
@@ -99,13 +102,18 @@
 
 <h2>Charts</h2>
 <div class="charts">
-  {% if missingness_chart %}<img src="{{ missingness_chart }}" alt="Missing values by column">{% endif %}
-  {% if correlation_chart %}<img src="{{ correlation_chart }}" alt="Correlation heatmap">{% endif %}
-  {% for col, uri in histograms %}
-  <img src="{{ uri }}" alt="Distribution of {{ col }}">
+  {% for chart in charts %}
+    {% if chart.data_uri %}
+    <figure>
+      <img src="{{ chart.data_uri }}" alt="{{ chart.title }}">
+      <figcaption>{{ chart.title }}</figcaption>
+    </figure>
+    {% else %}
+    <div class="chart-error">{{ chart.title }}: {{ chart.error }}</div>
+    {% endif %}
   {% endfor %}
-  {% if not missingness_chart and not correlation_chart and not histograms %}
-  <p class="empty">No charts to display (no numeric columns or no missing values).</p>
+  {% if not charts %}
+  <p class="empty">No charts to display.</p>
   {% endif %}
 </div>
 

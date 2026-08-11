@@ -89,6 +89,19 @@ matplotlib charts as base64-embedded PNGs (no external assets, so the HTML is se
 no system-level dependencies — it installs identically via pip on Windows/Mac/Linux — at the cost
 of weaker CSS support (no flexbox), so the PDF layout is simpler than the HTML one.
 
+Charts are picked, not automatic: `charts.py`'s `_CHART_RENDERERS` dispatch table (same
+type-string-to-function pattern as `validation/validator.py`'s `_CHECKERS`) maps a chart `type`
+(`histogram`, `bar`, `box`, `scatter`, `line`, `pie`, `correlation`, `missingness`) to a renderer;
+`render_chart` catches a renderer's `ValueError` (wrong dtype, no data) and turns it into an
+inline error entry in the report instead of failing the whole thing — same crash-isolation
+pattern as validation rules. `html_report.render(..., chart_specs=None)` (the default, what plain
+`dstk run` gets) falls back to `charts.default_chart_specs()`, which reproduces the old fixed
+auto-generated set; an explicit `[]` means no charts. The web app's Report step is a chart
+*builder* (mirrors the Validate step's rule builder) — `GET /api/sessions/{id}/columns` reports
+each column's numeric-ness so the frontend only offers valid columns per chart type (e.g. no
+`histogram` on a text column). `ChartConfig` in `config.py` lets the same picker be driven from
+YAML via `report.charts`, not just the web UI.
+
 **Three interfaces, one pipeline**: `cli/main.py` (Typer) wraps the stage functions for
 step-by-step use (`dstk collect/clean/validate/report`, chaining Parquet/CSV intermediates via
 `utils/io.py`) or full automation (`dstk run`). All commands are wrapped with a

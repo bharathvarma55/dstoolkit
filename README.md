@@ -71,6 +71,10 @@ to maintain.
   column profiles, charts) and/or a PDF rendered from the same content via xhtml2pdf — pure
   Python, no system dependencies, so it installs the same way on Windows/Mac/Linux. The PDF has
   simpler layout than the HTML (xhtml2pdf doesn't support flexbox), but the same information.
+  Charts are picked explicitly — `histogram`, `bar`, `box`, `scatter`, `line`, `pie`,
+  `correlation`, `missingness` — in the web app's chart builder, or via `report.charts` in the
+  YAML config; omit `report.charts` entirely to get the old automatic set (missingness +
+  histograms + correlation) back.
 - **Interfaces**: CLI (`dstk`), a custom FastAPI + HTML/CSS/JS web app (`dstk serve`), and a
   Streamlit dashboard — all built on the same collect/clean/validate/report functions.
 

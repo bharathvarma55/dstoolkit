@@ -11,11 +11,11 @@ import numpy as np
 import pandas as pd
 from fastapi import APIRouter, HTTPException, UploadFile
 from fastapi.responses import Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ..cleaning.cleaner import clean
 from ..collectors import file_collector
-from ..config import CleaningConfig, ValidationRuleConfig
+from ..config import ChartConfig, CleaningConfig, ValidationRuleConfig
 from ..reporting import html_report, pdf_report
 from ..validation.validator import validate
 from .state import SessionState, store
@@ -76,6 +76,18 @@ def get_preview(session_id: str) -> dict[str, Any]:
     return {"preview": _preview(session.df)}
 
 
+@router.get("/sessions/{session_id}/columns")
+def get_columns(session_id: str) -> dict[str, Any]:
+    """Column names plus whether each is numeric, so the frontend's chart builder can offer the
+    right columns for each chart type (e.g. only numeric ones for a histogram)."""
+    session = _get_session(session_id)
+    columns = [
+        {"name": str(col), "numeric": bool(pd.api.types.is_numeric_dtype(session.df[col]))}
+        for col in session.df.columns
+    ]
+    return {"columns": columns}
+
+
 @router.post("/sessions/{session_id}/clean")
 def run_clean(session_id: str, config: CleaningConfig) -> dict[str, Any]:
     session = _get_session(session_id)
@@ -103,13 +115,19 @@ def run_validate(session_id: str, body: ValidateRequest) -> dict[str, Any]:
 
 class ReportRequest(BaseModel):
     title: str = "Data Science Report"
+    charts: list[ChartConfig] = Field(default_factory=list)
 
 
 @router.post("/sessions/{session_id}/report")
 def run_report(session_id: str, body: ReportRequest) -> dict[str, Any]:
     session = _get_session(session_id)
+    chart_specs = [c.model_dump() for c in body.charts]
     session.report_html = html_report.render(
-        session.df, session.cleaning_log, session.validation_result, title=body.title
+        session.df,
+        session.cleaning_log,
+        session.validation_result,
+        title=body.title,
+        chart_specs=chart_specs,
     )
     return {"ready_formats": ["html", "pdf"]}
 
