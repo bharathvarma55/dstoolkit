@@ -3,9 +3,12 @@
 A single command-line tool covering the standard data science workflow: **collect → clean →
 validate → report**.
 
-**Live demo:** [dstoolkit.onrender.com](https://dstoolkit.onrender.com) — upload a file and try
-the whole pipeline in your browser. (Free tier: spins down after 15 min idle, so the first load
-after a break takes ~30-60s to wake up.)
+**Live demos:**
+- [dstoolkit.onrender.com](https://dstoolkit.onrender.com) — the polished FastAPI web app
+- [dstoolkit-fgwxfpjc3xwxma9wk7kjx6.streamlit.app](https://dstoolkit-fgwxfpjc3xwxma9wk7kjx6.streamlit.app) — the Streamlit dashboard
+
+Both let you upload a file and try the whole pipeline in your browser. Both are on free tiers
+that sleep after inactivity, so the first load after a break can take 30-60s to wake up.
 
 ## Install
 
