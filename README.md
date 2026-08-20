@@ -3,6 +3,10 @@
 A single command-line tool covering the standard data science workflow: **collect → clean →
 validate → report**.
 
+**Live demo:** [dstoolkit.onrender.com](https://dstoolkit.onrender.com) — upload a file and try
+the whole pipeline in your browser. (Free tier: spins down after 15 min idle, so the first load
+after a break takes ~30-60s to wake up.)
+
 ## Install
 
 ```bash
