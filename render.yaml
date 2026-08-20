@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: dstoolkit
+    runtime: python
+    plan: free
+    buildCommand: pip install -e .
+    startCommand: dstk serve --host 0.0.0.0
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0

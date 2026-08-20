@@ -125,6 +125,10 @@ properties in `styles.css`'s `:root`. Static assets must be listed in
 `[tool.setuptools.package-data]` in `pyproject.toml` (same as the Jinja2 template) or they're
 silently dropped from the built wheel — see the packaging-fix commit for how that bug surfaced.
 
+`dstk serve`'s `--port` defaults to the `$PORT` env var when set, falling back to 8000 — this is
+what lets `render.yaml` (repo root) use a static start command (`dstk serve --host 0.0.0.0`)
+across whatever port Render assigns at runtime, rather than needing a platform-specific wrapper.
+
 ## Testing conventions
 
 Tests mirror `src/dstoolkit/` module-for-module under `tests/`. `tests/conftest.py` has a shared

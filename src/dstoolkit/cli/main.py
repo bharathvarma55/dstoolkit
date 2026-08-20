@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import functools
 import json
+import os
 from pathlib import Path
 
 import typer
@@ -137,8 +138,11 @@ def run(config: Path = typer.Argument(..., help="Path to the pipeline YAML confi
 @app.command()
 @_friendly_errors
 def serve(
-    host: str = typer.Option("127.0.0.1", help="Host to bind to."),
-    port: int = typer.Option(8000, help="Port to bind to."),
+    host: str = typer.Option("127.0.0.1", help="Host to bind to (0.0.0.0 to accept external connections)."),
+    port: int = typer.Option(
+        int(os.environ.get("PORT", 8000)),
+        help="Port to bind to. Defaults to the $PORT env var if set (e.g. on Render/Heroku), else 8000.",
+    ),
 ) -> None:
     """Launch the web app (upload/clean/validate/report through the browser)."""
     import uvicorn

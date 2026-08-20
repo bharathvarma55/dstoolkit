@@ -55,6 +55,26 @@ A simpler four-tab dashboard built on Streamlit's default widgets, wired to the 
 collect/clean/validate/report functions. Less polished than `dstk serve`, but zero frontend code
 to maintain.
 
+## Deploy
+
+Both web interfaces can be deployed for free from this same GitHub repo — no server management.
+
+**FastAPI web app → [Render](https://render.com):**
+1. Sign in to Render with GitHub and click **New +** → **Blueprint**.
+2. Pick this repo. Render reads `render.yaml` at the repo root automatically (build command
+   `pip install -e .`, start command `dstk serve --host 0.0.0.0`, free plan) — just click **Apply**.
+3. First deploy takes a few minutes; you'll get a URL like `https://dstoolkit.onrender.com`.
+4. Free-tier note: the service spins down after 15 minutes idle, so the first visit after a break
+   takes ~30-60s to wake back up. Session state is in-memory per the single free instance, so
+   that's fine for a demo but don't rely on it for multi-user production use.
+
+**Streamlit dashboard → [Streamlit Community Cloud](https://share.streamlit.io):**
+1. Sign in with GitHub, click **New app**.
+2. Pick this repo, branch `master`, and set the main file path to
+   `src/dstoolkit/webapp/app.py`.
+3. Click **Deploy** — Streamlit Cloud installs dependencies from `pyproject.toml` automatically.
+   You'll get a URL like `https://dstoolkit.streamlit.app`.
+
 ## Scope
 
 - **Collect**:
